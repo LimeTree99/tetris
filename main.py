@@ -1,6 +1,6 @@
 import pygame
 from random import randint
-from lib import color, pygame_window, Grid
+from lib import color, pygame_window, Grid, Key
 from lib.shape import *
 
 
@@ -9,52 +9,49 @@ game design decitions:
     add score for droping blocks
         -only if they are droped all the way
         -1 point for each block droped through
+        
+todo:
+    resizable elements 
 """
-
-class Key:
-    def __init__(self, key, rep_time=0, first_rep_time=0, repeat=True):
-        self.key = key
-        self.rep_time = rep_time
-        self.first_rep_time = first_rep_time
-        self.repeat = repeat
-        self.keydown = False
-        self.old_time = 0
-        self.event_one_occur = False
-        self.event_two_occur = False
-        
-    def keypress(self):
-        """
-        Returns:
-        true if key is in active state, else false
-        """
-        state = False
-        if self.keydown:
-            if not self.event_one_occur:
-                state = True
-                self.event_one_occur = True
-                self.old_time = pygame.time.get_ticks()
-            elif not self.event_two_occur:
-                if pygame.time.get_ticks() - self.old_time > self.first_rep_time:
-                    self.old_time = pygame.time.get_ticks()
-                    self.state = True
-                    self.event_two_occur = True
-            elif pygame.time.get_ticks() - self.old_time > self.rep_time:
-                self.old_time = pygame.time.get_ticks()
-                state = True
-        return state
-    
-    def set_keydown(self, keydown):
-        self.keydown = keydown
-        self.event_one_occur = False
-        self.event_two_occur = False
         
     
+class Score:
+    def __init__(self, display):
+        self.display = display
+        self.font = pygame.font.Font('assets/fonts/Helvetica.ttf', 40)
+        self.score = 0
+        self.surface = None
+        self.create_surface()
+        
+    def draw(self):
+        self.display.blit(self.surface, [50,470])
+        
+    def create_surface(self):
+        self.surface = pygame.Surface([200, 50])
+        self.surface.fill(color.gray)
+        font = self.font.render(str(self.score), True, color.white)
+        self.surface.blit(font, [7,7])
+    
+    def add(self, amount):
+        self.score += amount
+        self.create_surface()
+    
+    def set(self, amount):
+        self.score = amount
+        self.create_surface()
+        
+        
+class Next_block:
+    def __init__(self, display):
+        self.display = display
 
     
 class Window(pygame_window.main):
     TICK = pygame.USEREVENT + 1
     def __init__(self):
         super().__init__(800, 600, 'TETRIS')
+        pygame.font.init()
+        
         self.background_colour = color.black
         self.tick_speed = 500
         
@@ -69,6 +66,7 @@ class Window(pygame_window.main):
                      'hard_drop':Key(pygame.K_SPACE,float('inf'),float('inf'))}
         
         self.grid = Grid(self.display, 20, 10, (280,20), 25, 25)
+        self.score = Score(self.display)
         
         self.shape = self.rand_shape()
         pygame.time.set_timer(Window.TICK, self.tick_speed)
@@ -80,6 +78,7 @@ class Window(pygame_window.main):
             #hit end create new shape
             for row in self.grid.find_full_rows():
                 self.grid.remove_row(row)
+                self.score.add(100)
                 
             self.shape = self.rand_shape()
                 
@@ -98,14 +97,18 @@ class Window(pygame_window.main):
         elif self.keys['rotate_left'].keypress():
             if self.shape.can_rotate_left():
                 self.shape.rotate_left()
+        elif self.keys['soft_drop'].keypress():
+            self.tick()
         elif self.keys['hard_drop'].keypress():
-            self.shape.hard_drop()
+            distance = self.shape.hard_drop()
+            self.score.add(distance)
             self.tick()
         
         
     def draw(self):
         super().draw()
         self.grid.draw()
+        self.score.draw()
     
     def event_handle(self, event):
         super().event_handle(event)

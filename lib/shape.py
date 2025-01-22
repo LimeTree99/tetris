@@ -81,8 +81,17 @@ class Shape:
         self.grid.set_points(self.shapes[self.direction], self.color)
     
     def hard_drop(self):
+        """
+        drop shape
+        
+        Returns:
+        distace droped
+        """
+        distance = 0
         while self.can_advance(0, 1):
             self.advance(0, 1)
+            distance += 1
+        return distance
             
 
            
@@ -125,10 +134,10 @@ class Shape_O(Shape):
 
 class Shape_S(Shape):
     def __init__(self, grid):
-        self.shapes = [[[4,0],[5,0],[5,1],[6,1]],
-                       [[5,1],[5,2],[6,0],[6,1]],
-                       [[4,1],[5,1],[5,2],[6,2]],
-                       [[4,1],[4,2],[5,0],[5,1]],
+        self.shapes = [[[4,1],[5,0],[5,1],[6,0]],
+                       [[5,0],[5,1],[6,1],[6,2]],
+                       [[4,2],[5,1],[5,2],[6,1]],
+                       [[4,0],[4,1],[5,1],[5,2]],
                       ]
         self.color = color.green
         super().__init__(grid)
@@ -150,5 +159,5 @@ class Shape_Z(Shape):
                        [[4,1],[5,1],[5,2],[6,2]],
                        [[4,1],[4,2],[5,0],[5,1]],
                       ]
-        self.color = color.purple
+        self.color = color.red
         super().__init__(grid)
