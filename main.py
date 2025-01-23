@@ -51,7 +51,7 @@ class Window(pygame_window.main):
     def __init__(self):
         super().__init__(800, 600, 'TETRIS')
         pygame.font.init()
-        
+        self.active = False
         self.background_colour = color.black
         self.tick_speed = 500
         
@@ -63,24 +63,33 @@ class Window(pygame_window.main):
                      'rotate_right':Key(pygame.K_UP,float('inf'),float('inf')),
                      'rotate_left':Key(pygame.K_z,float('inf'),float('inf')),
                      'soft_drop':Key(pygame.K_DOWN,self.key_rep, self.key_rep),
-                     'hard_drop':Key(pygame.K_SPACE,float('inf'),float('inf'))}
+                     'hard_drop':Key(pygame.K_SPACE,float('inf'),float('inf')),
+                     'pause':Key(pygame.K_ESCAPE,float('inf'),float('inf'))}
         
         self.grid = Grid(self.display, 20, 10, (280,20), 25, 25)
         self.score = Score(self.display)
         
+        self.shape = None
+        self.start()
+        
+    def start(self):
+        self.active = True
         self.shape = self.rand_shape()
+        self.shape.add_to_grid(self.grid)
+        self.score.set(0)
         pygame.time.set_timer(Window.TICK, self.tick_speed)
         
     def tick(self):
-        if (self.shape.can_advance(0, 1)):
-            self.shape.advance(0, 1)
-        else:
-            #hit end create new shape
-            for row in self.grid.find_full_rows():
-                self.grid.remove_row(row)
-                self.score.add(100)
-                
-            self.shape = self.rand_shape()
+        if self.active:
+            if (self.shape.can_advance(0, 1)):
+                self.shape.advance(0, 1)
+            else:
+                #hit end create new shape
+                for row in self.grid.find_full_rows():
+                    self.grid.remove_row(row)
+                    self.score.add(100)
+                    
+                self.shape = self.rand_shape()
                 
     
     def update(self):
@@ -99,10 +108,16 @@ class Window(pygame_window.main):
                 self.shape.rotate_left()
         elif self.keys['soft_drop'].keypress():
             self.tick()
+            self.score.add(1)
         elif self.keys['hard_drop'].keypress():
             distance = self.shape.hard_drop()
             self.score.add(distance)
             self.tick()
+        elif self.keys['pause'].keypress():
+            if self.active:
+                self.active = False
+            else:
+                self.active = True
         
         
     def draw(self):
@@ -140,20 +155,21 @@ class Window(pygame_window.main):
         x = randint(0, 6)
         
         if x == 0:
-            shape = Shape_I(self.grid)
+            shape = Shape_I()
         elif x == 1:
-            shape = Shape_J(self.grid)
+            shape = Shape_J()
         elif x == 2:
-            shape = Shape_L(self.grid)
+            shape = Shape_L()
         elif x == 3:
-            shape = Shape_O(self.grid)
+            shape = Shape_O()
         elif x == 4:
-            shape = Shape_S(self.grid)
+            shape = Shape_S()
         elif x == 5:
-            shape = Shape_T(self.grid)
+            shape = Shape_T()
         elif x == 6:
-            shape = Shape_Z(self.grid)
+            shape = Shape_Z()
             
+        shape.add_to_grid(self.grid)            
         return shape
 
 

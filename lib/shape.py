@@ -2,10 +2,12 @@ from lib import color
 
 
 class Shape:
-    def __init__(self, grid):
-        self.grid = grid
+    def __init__(self):
+        self.grid = None
         self.direction = 0
-        
+    
+    def add_to_grid(self, grid):
+        self.grid = grid
         self.grid.set_points(self.shapes[self.direction], self.color)
         
     def rotate_right(self):
@@ -31,15 +33,21 @@ class Shape:
             self.direction += 1
         
     def can_rotate_right(self):
-        can_rotate = True
         blocks = self.shapes[self.direction]
         self.rotate_direction_right()
         new_blocks = self.shapes[self.direction]
-        
         can_rotate = self.grid.range_is_free(range=new_blocks, ignore=blocks)
-        
         self.rotate_direction_left()
-            
+        
+        return can_rotate
+    
+    def can_rotate_left(self):
+        blocks = self.shapes[self.direction]
+        self.rotate_direction_left()
+        new_blocks = self.shapes[self.direction]
+        can_rotate = self.grid.range_is_free(range=new_blocks, ignore=blocks)
+        self.rotate_direction_right()
+        
         return can_rotate
             
     def can_advance(self, x:int, y:int) -> bool:
@@ -96,68 +104,68 @@ class Shape:
 
            
 class Shape_I(Shape):
-    def __init__(self, grid):
+    def __init__(self):
         self.shapes = [[[3,0],[4,0],[5,0],[6,0]],
                        [[5,0],[5,1],[5,2],[5,3]],
                        [[3,1],[4,1],[5,1],[6,1]],
                        [[4,0],[4,1],[4,2],[4,3]]
                       ]
         self.color = color.teal
-        super().__init__(grid)
+        super().__init__()
         
 class Shape_J(Shape):
-    def __init__(self, grid):
+    def __init__(self):
         self.shapes = [[[3,0],[3,1],[4,1],[5,1]],
                        [[5,0],[4,0],[4,1],[4,2]],
                        [[3,1],[4,1],[5,1],[5,2]],
                        [[4,0],[4,1],[4,2],[3,2]]
                       ]
         self.color = color.blue
-        super().__init__(grid)
+        super().__init__()
         
 class Shape_L(Shape):
-    def __init__(self, grid):
+    def __init__(self):
         self.shapes = [[[3,1],[4,1],[5,1],[5,0]],
                        [[4,0],[4,1],[4,2],[5,2]],
                        [[3,2],[3,1],[4,1],[5,1]],
                        [[3,0],[4,0],[4,1],[4,2]]
                       ]
         self.color = color.orange
-        super().__init__(grid)
+        super().__init__()
         
 class Shape_O(Shape):
-    def __init__(self, grid):
+    def __init__(self):
         self.shapes = [[[4,0],[4,1],[5,0],[5,1]]
                       ]
         self.color = color.yellow
-        super().__init__(grid)
+        super().__init__()
 
 class Shape_S(Shape):
-    def __init__(self, grid):
+    def __init__(self):
         self.shapes = [[[4,1],[5,0],[5,1],[6,0]],
                        [[5,0],[5,1],[6,1],[6,2]],
                        [[4,2],[5,1],[5,2],[6,1]],
                        [[4,0],[4,1],[5,1],[5,2]],
                       ]
         self.color = color.green
-        super().__init__(grid)
+        super().__init__()
 
 class Shape_T(Shape):
-    def __init__(self, grid):
+    def __init__(self):
         self.shapes = [[[4,1],[5,0],[5,1],[6,1]],
                        [[5,0],[5,1],[5,2],[6,1]],
                        [[4,1],[5,1],[5,2],[6,1]],
                        [[4,1],[5,0],[5,1],[5,2]]
                       ]
         self.color = color.purple
-        super().__init__(grid)
+        super().__init__()
  
 class Shape_Z(Shape):
-    def __init__(self, grid):
+    def __init__(self):
         self.shapes = [[[4,0],[5,0],[5,1],[6,1]],
                        [[5,1],[5,2],[6,0],[6,1]],
                        [[4,1],[5,1],[5,2],[6,2]],
                        [[4,1],[4,2],[5,0],[5,1]],
                       ]
         self.color = color.red
-        super().__init__(grid)
+        super().__init__()
