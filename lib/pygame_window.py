@@ -17,6 +17,7 @@ class main:
         self.background_on = True
         self.background_colour = (255,255,255)
         self.events = 0
+        self.keys = {}
         
         pygame.init()
         self.display = pygame.display.set_mode((self.width,self.height),pygame.RESIZABLE)
@@ -46,7 +47,30 @@ class main:
                 if event.type == pygame.VIDEORESIZE:
                     self.width, self.height = event.w, event.h
                     self.display = pygame.display.set_mode((self.width, self.height),
-                                                           pygame.RESIZABLE)                    
+                                                           pygame.RESIZABLE)   
+                
+                elif event.type == pygame.KEYDOWN:
+                    found = False
+                    n=0
+                    actions = list(self.keys.keys())
+                    while not found and n < len(actions):
+                        action = actions[n]
+                        if event.key == self.keys[action].key:
+                            found = True
+                            self.keys[action].set_keydown(True)
+                        n += 1
+                        
+                elif event.type == pygame.KEYUP:
+                    found = False
+                    n=0
+                    actions = list(self.keys.keys())
+                    while not found and n < len(actions):
+                        action = actions[n]
+                        if event.key == self.keys[action].key:
+                            found = True
+                            self.keys[action].set_keydown(False)
+                        n += 1
+                                 
                 self.event_handle(event)
                 
             if self.background_on:

@@ -45,6 +45,7 @@ class Next_block:
     def __init__(self, display):
         self.display = display
 
+
     
 class Window(pygame_window.main):
     TICK = pygame.USEREVENT + 1
@@ -129,27 +130,6 @@ class Window(pygame_window.main):
         super().event_handle(event)
         if event.type == Window.TICK:
             self.tick()
-        elif event.type == pygame.KEYDOWN:
-            found = False
-            n=0
-            actions = list(self.keys.keys())
-            while not found and n < len(actions):
-                action = actions[n]
-                if event.key == self.keys[action].key:
-                    found = True
-                    self.keys[action].set_keydown(True)
-                n += 1
-                
-        elif event.type == pygame.KEYUP:
-            found = False
-            n=0
-            actions = list(self.keys.keys())
-            while not found and n < len(actions):
-                action = actions[n]
-                if event.key == self.keys[action].key:
-                    found = True
-                    self.keys[action].set_keydown(False)
-                n += 1
         
     def rand_shape(self):
         x = randint(0, 6)
@@ -171,6 +151,8 @@ class Window(pygame_window.main):
             
         shape.add_to_grid(self.grid)            
         return shape
+
+
 
 
 if __name__ == '__main__':
