@@ -44,16 +44,20 @@ class Score:
 class Next_block:
     def __init__(self, display):
         self.display = display
+        self.grid = Grid(self.display, 4, 8, [575,35], 25,25)
+        self.shape = Shape_J()
+        self.shape.add_to_display(self.grid)
+        
+    def draw(self):
+        self.grid.draw()
 
 
     
-class Window(pygame_window.main):
+class Game:
     TICK = pygame.USEREVENT + 1
-    def __init__(self):
-        super().__init__(800, 600, 'TETRIS')
-        pygame.font.init()
+    def __init__(self, display):
+        self.display = display
         self.active = False
-        self.background_colour = color.black
         self.tick_speed = 500
         
         self.key_rep = 50
@@ -69,6 +73,7 @@ class Window(pygame_window.main):
         
         self.grid = Grid(self.display, 20, 10, (280,20), 25, 25)
         self.score = Score(self.display)
+        self.next_block = Next_block(self.display)
         
         self.shape = None
         self.start()
@@ -78,7 +83,7 @@ class Window(pygame_window.main):
         self.shape = self.rand_shape()
         self.shape.add_to_grid(self.grid)
         self.score.set(0)
-        pygame.time.set_timer(Window.TICK, self.tick_speed)
+        pygame.time.set_timer(Game.TICK, self.tick_speed)
         
     def tick(self):
         if self.active:
@@ -94,7 +99,6 @@ class Window(pygame_window.main):
                 
     
     def update(self):
-        super().update()
         if self.keys['move_right'].keypress():
             if self.shape.can_advance(1, 0):
                 self.shape.advance(1, 0)
@@ -122,13 +126,12 @@ class Window(pygame_window.main):
         
         
     def draw(self):
-        super().draw()
         self.grid.draw()
         self.score.draw()
+        self.next_block.draw()
     
     def event_handle(self, event):
-        super().event_handle(event)
-        if event.type == Window.TICK:
+        if event.type == Game.TICK:
             self.tick()
         
     def rand_shape(self):
@@ -153,7 +156,26 @@ class Window(pygame_window.main):
         return shape
 
 
-
+class Window(pygame_window.main):
+    def __init__(self):
+        super().__init__(800, 600, 'TETRIS')
+        pygame.font.init()
+        self.background_colour = color.black
+        
+        self.game = Game(self.display)
+        self.keys = self.game.keys
+        
+    def update(self):
+        super().update()
+        self.game.update()
+    
+    def draw(self):
+        super().draw()
+        self.game.draw()
+        
+    def event_handle(self, event):
+        super().event_handle(event)
+        self.game.event_handle(event)
 
 if __name__ == '__main__':
     Window().run()

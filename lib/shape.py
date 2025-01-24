@@ -10,6 +10,10 @@ class Shape:
         self.grid = grid
         self.grid.set_points(self.shapes[self.direction], self.color)
         
+    def add_to_display(self, grid):
+        self.grid = grid
+        self.grid.set_points(self.display, self.color)
+        
     def rotate_right(self):
         self.grid.set_points(self.shapes[self.direction], None)
         self.rotate_direction_right()
@@ -110,6 +114,7 @@ class Shape_I(Shape):
                        [[3,1],[4,1],[5,1],[6,1]],
                        [[4,0],[4,1],[4,2],[4,3]]
                       ]
+        self.display = [[0,0],[1,0],[2,0],[3,0]]
         self.color = color.teal
         super().__init__()
         
@@ -120,6 +125,7 @@ class Shape_J(Shape):
                        [[3,1],[4,1],[5,1],[5,2]],
                        [[4,0],[4,1],[4,2],[3,2]]
                       ]
+        self.display = [[0,0],[0,1],[1,1],[2,1]]
         self.color = color.blue
         super().__init__()
         
