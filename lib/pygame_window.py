@@ -12,6 +12,8 @@ class main:
         
         self.width = width
         self.height = height
+        self._screen_width = width
+        self._screen_height = height
         self.framerate = framerate
         self.end = False
         self.background_on = True
@@ -19,11 +21,16 @@ class main:
         self.events = 0
         self.keys = {}
         
+        
         pygame.init()
-        self.display = pygame.display.set_mode((self.width,self.height),pygame.RESIZABLE)
+        #the screen acctually blit, used as a buffer for resizing
+        self._screen = pygame.display.set_mode((self.width,self.height),pygame.RESIZABLE)
+        #the one the user interacts with
+        self.display = pygame.Surface((self.width,self.height))
         pygame.display.set_caption(window_name)
         icon = pygame.image.load(corner_image)
         pygame.display.set_icon(icon)
+        
         self.clock = pygame.time.Clock()
         
         
@@ -43,12 +50,10 @@ class main:
             for event in self.events:
                 if event.type == pygame.QUIT:
                     self.end = True
-                    
                 if event.type == pygame.VIDEORESIZE:
-                    self.width, self.height = event.w, event.h
-                    self.display = pygame.display.set_mode((self.width, self.height),
-                                                           pygame.RESIZABLE)   
-                
+                    self._screen_width, self._screen_height = event.w, event.h
+                    self._screen=pygame.display.set_mode((self._screen_width, self._screen_height),pygame.RESIZABLE)
+                    
                 elif event.type == pygame.KEYDOWN:
                     found = False
                     n=0
@@ -75,10 +80,15 @@ class main:
                 
             if self.background_on:
                 self.display.fill(self.background_colour)
-
+                
             self.update()
             self.draw()
-            
+            # keeps game centered and square
+            square_width = self.width * (self._screen_height / self.height)
+            self._screen.blit(
+                pygame.transform.scale(self.display, (square_width, self._screen_height)),
+                ((self._screen_width - square_width) / 2,0))
+                
             pygame.display.update()
             
             self.clock.tick(self.framerate)

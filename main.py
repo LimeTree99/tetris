@@ -10,8 +10,14 @@ game design decitions:
         -only if they are droped all the way
         -1 point for each block droped through
         
-todo:
-    resizable elements 
+todo short term:
+    display something whan paused
+    have a defeated screen 
+    
+todo long term:
+    a menu screen 
+    be able to adjust settings
+    resizable to a smaller size 
 """
         
     
