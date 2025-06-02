@@ -1,6 +1,7 @@
 # all the colours
 
 black =     (0,0,0)
+light_gray =(160,160,160)
 gray =      (100,100,100)
 white =     (255,255,255)
 
