@@ -34,7 +34,7 @@ class Score:
         
     def create_surface(self):
         self.surface = pygame.Surface([200, 50])
-        self.surface.fill(color.gray)
+        pygame.draw.rect(self.surface, color.white, [0,0,200,50], width=1)
         font = self.font.render(str(self.score), True, color.white)
         self.surface.blit(font, [7,7])
     
@@ -227,7 +227,7 @@ class Menu:
 
 class Window(pygame_window.main):
     def __init__(self):
-        super().__init__(800, 600, 'TETRIS')
+        super().__init__(800, 600, 'TETRIS', corner_image='assets/images/icon.png')
         pygame.font.init()
         self.background_colour = color.black
         
