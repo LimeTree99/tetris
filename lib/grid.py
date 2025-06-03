@@ -107,6 +107,10 @@ class Grid:
         self.grid.pop(row)
         self.grid.insert(0, [None for _ in range(self.columns)])
         
+    def clear(self):
+        for y in range(self.rows):
+            for x in range(self.columns):
+                self.grid[y][x] = None  
 
     def _print(self):
         for i in self.grid:

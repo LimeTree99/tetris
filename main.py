@@ -48,14 +48,31 @@ class Score:
         
         
 class Next_block:
-    def __init__(self, display):
+    def __init__(self, display, pos, shape):
         self.display = display
-        self.grid = Grid(self.display, 4, 8, [575,35], 25,25)
-        self.shape = Shape_J()
+        self.pos = pos
+        self.grid = Grid(self.display, 2, 4, [pos[0]+25, pos[1]+25], 25,25)
+        self.shape = shape
         self.shape.add_to_display(self.grid)
         
     def draw(self):
+        pygame.draw.rect(self.display, color.white, [self.pos[0],self.pos[1],150,100], width=1)
         self.grid.draw()
+    
+    def replace(self, shape:Shape) -> Shape:
+        """
+        Replace current shape with new shape
+        
+        Param:
+        shape (Shape)   The replacement
+        Returns:
+        Shape   old shape 
+        """
+        hold = self.shape
+        self.shape = shape
+        self.grid.clear()
+        self.shape.add_to_display(self.grid)
+        return hold
 
 
     
@@ -79,7 +96,7 @@ class Game:
         
         self.grid = Grid(self.display, 20, 10, (280,20), 25, 25)
         self.score = Score(self.display)
-        self.next_block = Next_block(self.display)
+        self.next_block = Next_block(self.display, [575,35], self.rand_shape())
         
         self.shape = None
         self.start()
@@ -101,7 +118,8 @@ class Game:
                     self.grid.remove_row(row)
                     self.score.add(100)
                     
-                self.shape = self.rand_shape()
+                self.shape = self.next_block.replace(self.rand_shape())
+                self.shape.add_to_grid(self.grid)
                 
     
     def update(self):
@@ -157,8 +175,7 @@ class Game:
             shape = Shape_T()
         elif x == 6:
             shape = Shape_Z()
-            
-        shape.add_to_grid(self.grid)            
+                    
         return shape
 
 class Button:

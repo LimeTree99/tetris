@@ -136,6 +136,7 @@ class Shape_L(Shape):
                        [[3,2],[3,1],[4,1],[5,1]],
                        [[3,0],[4,0],[4,1],[4,2]]
                       ]
+        self.display = [[0,1],[1,1],[2,1],[2,0]]
         self.color = color.orange
         super().__init__()
         
@@ -143,6 +144,7 @@ class Shape_O(Shape):
     def __init__(self):
         self.shapes = [[[4,0],[4,1],[5,0],[5,1]]
                       ]
+        self.display = [[0,0],[0,1],[1,0],[1,1]]
         self.color = color.yellow
         super().__init__()
 
@@ -153,6 +155,7 @@ class Shape_S(Shape):
                        [[4,2],[5,1],[5,2],[6,1]],
                        [[4,0],[4,1],[5,1],[5,2]],
                       ]
+        self.display = [[0,1],[1,0],[1,1],[2,0]]
         self.color = color.green
         super().__init__()
 
@@ -163,6 +166,7 @@ class Shape_T(Shape):
                        [[4,1],[5,1],[5,2],[6,1]],
                        [[4,1],[5,0],[5,1],[5,2]]
                       ]
+        self.display = [[0,1],[1,0],[1,1],[2,1]]
         self.color = color.purple
         super().__init__()
  
@@ -173,5 +177,6 @@ class Shape_Z(Shape):
                        [[4,1],[5,1],[5,2],[6,2]],
                        [[4,1],[4,2],[5,0],[5,1]],
                       ]
+        self.display = [[0,0],[1,0],[1,1],[2,1]]
         self.color = color.red
         super().__init__()
