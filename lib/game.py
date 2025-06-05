@@ -1,4 +1,4 @@
-import pygame
+import pygame, pickle
 from random import randint
 from lib import Key, Grid
 from lib.shape import *
@@ -40,6 +40,23 @@ class Game:
             self.score.set(0)
             pygame.time.set_timer(Game.Game.TICK, self.tick_speed)
             
+        def save_score(self):
+            try:
+                fh = open('.save.d', 'rb')
+                score_list = pickle.load(fh)
+                fh.close()
+                score_list.append(self.score.get_score())
+                if self.score.get_score() > score_list[0]:
+                    score_list.insert(0, self.score.get_score())
+                
+            except:
+                score_list = [self.score.get_score()]
+                
+            fh = open('.save.d', 'wb')
+            pickle.dump(score_list, fh)
+            fh.close()
+            
+            
         def tick(self):
             if self.active:
                 if (self.shape.can_advance(0, 1)):
@@ -54,6 +71,8 @@ class Game:
                     if self.grid.range_is_free(self.shape.get_vectors()):
                         self.shape.add_to_grid(self.grid)
                     else:
+                        self.shape.add_to_grid(self.grid)
+                        self.save_score()
                         self.active = False
                     
         
@@ -117,7 +136,7 @@ class Game:
     class Score:
         def __init__(self, display):
             self.display = display
-            self.font = pygame.font.Font('assets/fonts/Helvetica.ttf', 40)
+            self.font = pygame.font.Font('assets/fonts/texgyrecursor.otf', 40)
             self.score = 0
             self.surface = None
             self.create_surface()
@@ -127,9 +146,9 @@ class Game:
             
         def create_surface(self):
             self.surface = pygame.Surface([200, 50])
-            pygame.draw.rect(self.surface, color.white, [0,0,200,50], width=1)
+            pygame.draw.rect(self.surface, color.white, self.surface.get_rect(), width=1)
             font = self.font.render(str(self.score), True, color.white)
-            self.surface.blit(font, [7,7])
+            self.surface.blit(font, [7,-1])
         
         def add(self, amount):
             self.score += amount
@@ -138,6 +157,9 @@ class Game:
         def set(self, amount):
             self.score = amount
             self.create_surface()
+            
+        def get_score(self):
+            return self.score
                 
 
     class Next_block:

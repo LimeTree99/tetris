@@ -1,7 +1,7 @@
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"   # disables pygame welcome message
-import pygame
-from lib import color, pygame_window, Key, Game
+import pygame, pickle
+from lib import color, pygame_window, Key, Game, Util
 
 
 """
@@ -12,7 +12,7 @@ game design decitions:
         
 todo short term:
     display last score & top score on start menu
-    the save block for later option
+    decide how start menu should select on return from other window    
     actually balence the game???
     
 todo long term:
@@ -102,6 +102,7 @@ class Menu:
         self.display = display
         self.font_title = pygame.font.Font('assets/fonts/texgyrecursor.otf', 100)
         self.font_credits = pygame.font.Font('assets/fonts/texgyrecursor.otf', 10)
+        self.font_score = pygame.font.Font('assets/fonts/texgyrecursor.otf', 20)
         self.keys = {'up':Key(pygame.K_UP,float('inf'),float('inf')),
                      'down':Key(pygame.K_DOWN,float('inf'),float('inf')),
                      'select':Key(pygame.K_RETURN,float('inf'),float('inf'))}
@@ -126,6 +127,17 @@ class Menu:
                                        **button_settings),)
         
         self.buttons[0].active = True
+        
+        # load score
+        try:
+            fh = open('.save.d', 'rb')
+            scores = pickle.load(fh)
+            self.score_top = scores[0]
+            self.score_last = scores[-1]
+            fh.close()
+        except:
+            self.score_top = 0
+            self.score_last = 0
         
     def update(self):
         if self.keys['up'].keypress():
@@ -154,6 +166,12 @@ class Menu:
         credits = self.font_credits.render("Ghost Flower", True, color.white)
         self.display.blit(credits, [610, 570])
         
+        #scores
+        top_score = Util.text_vertical(self.font_score, f'TOP {self.score_top}', True, color.white)
+        self.display.blit(top_score, [130,165])
+        top_score = Util.text_vertical(self.font_score, f'LST {self.score_last}', True, color.white)
+        self.display.blit(top_score, [660,165])
+        
         for button in self.buttons:
             button.draw()
             
@@ -166,39 +184,51 @@ class Window(pygame_window.main):
         pygame.font.init()
         self.background_colour = color.black
         
-        self.game = Game.Game(self.display, lambda:self.swap_window())
+        self.game = None
         
-        def new_game():
-            self.game.start()
-            self.swap_window()
-            
+        
+        
         self.menu = Menu(self.display, [['Continue', lambda:self.swap_window()],
-                                        ['New Game', lambda:new_game()],
+                                        ['New Game', lambda:self.new_game()],
                                         ['Settings', lambda:print('Settings')],
                                         ['Quit', lambda:self.quit()]])
+        self.keys = {}
+        self.window_cur = 'menu'
+        self.windows = {'game':None, 'menu':None}
+        self.new_game()
+        self.new_menu()
+        self.go_to('menu')
         
-        self.window_i = 1
-        self.windows = [self.game, self.menu]
         
-        self.keys = self.windows[self.window_i].keys
         
-    def swap_window(self):
-        self.window_i += 1
-        if self.window_i >= len(self.windows):
-            self.window_i = 0
-        self.keys = self.windows[self.window_i].keys
+    
+    def go_to(self, window:str):
+        self.window_cur = window
+        self.keys = self.windows[self.window_cur].keys
+    
+    def new_menu(self):
+        self.windows['menu'] = self.menu = Menu(self.display, [['Continue', lambda:self.go_to('game')],
+                                                               ['New Game', lambda:self.new_game()],
+                                                               ['Settings', lambda:print('Settings')],
+                                                               ['Quit', lambda:self.quit()]])
+        self.menu.update()
+        self.go_to('menu')
+    
+    def new_game(self):
+            self.windows['game'] = Game.Game(self.display, lambda:self.new_menu())
+            self.go_to('game')
         
     def update(self):
         super().update()
-        self.windows[self.window_i].update()
+        self.windows[self.window_cur].update()
     
     def draw(self):
         super().draw()
-        self.windows[self.window_i].draw()
+        self.windows[self.window_cur].draw()
         
     def event_handle(self, event):
         super().event_handle(event)
-        self.windows[self.window_i].event_handle(event)
+        self.windows[self.window_cur].event_handle(event)
     
     def quit(self):
         super().quit()
