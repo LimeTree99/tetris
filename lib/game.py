@@ -7,8 +7,9 @@ from lib.shape import *
 class Game:
     class Game:
         TICK = pygame.USEREVENT + 1
-        def __init__(self, display):
+        def __init__(self, display, exit_func):
             self.display = display
+            self.exit_func = exit_func
             self.active = False
             self.tick_speed = 500
             
@@ -32,6 +33,8 @@ class Game:
             
         def start(self):
             self.active = True
+            self.grid.clear()
+            self.score.set(0)
             self.shape = self.rand_shape()
             self.shape.add_to_grid(self.grid)
             self.score.set(0)
@@ -48,7 +51,10 @@ class Game:
                         self.score.add(100)
                         
                     self.shape = self.next_block.replace(self.rand_shape())
-                    self.shape.add_to_grid(self.grid)
+                    if self.grid.range_is_free(self.shape.get_vectors()):
+                        self.shape.add_to_grid(self.grid)
+                    else:
+                        self.active = False
                     
         
         def update(self):
@@ -66,16 +72,16 @@ class Game:
                     self.shape.rotate_left()
             elif self.keys['soft_drop'].keypress():
                 self.tick()
-                self.score.add(1)
+                # fixes a bug but i don't like this solution
+                if self.active:
+                    self.score.add(1)
             elif self.keys['hard_drop'].keypress():
                 distance = self.shape.hard_drop()
                 self.score.add(distance)
                 self.tick()
             elif self.keys['pause'].keypress():
-                if self.active:
-                    self.active = False
-                else:
-                    self.active = True
+                self.exit_func()
+                
             
             
         def draw(self):

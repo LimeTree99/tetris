@@ -1,7 +1,7 @@
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"   # disables pygame welcome message
 import pygame
-from random import randint
-from lib import color, pygame_window, Grid, Key, Game
-from lib.shape import *
+from lib import color, pygame_window, Key, Game
 
 
 """
@@ -11,13 +11,13 @@ game design decitions:
         -1 point for each block droped through
         
 todo short term:
-    display something whan paused
-    have a defeated screen 
+    display last score & top score on start menu
+    the save block for later option
+    actually balence the game???
     
 todo long term:
-    a menu screen 
     be able to adjust settings
-    resizable to a smaller size 
+    resizable to a smaller size (probably wont happen)
 """
         
 
@@ -94,52 +94,51 @@ class Button:
     
 class Menu:
     def __init__(self, display, actions):
+        '''
+        Param:
+        display     pygame.Surface
+        actions     [[name(str), action(func)]]
+        '''
         self.display = display
-        self.font_title = pygame.font.Font('assets/fonts/texgyrecursor.otf', 80)
+        self.font_title = pygame.font.Font('assets/fonts/texgyrecursor.otf', 100)
+        self.font_credits = pygame.font.Font('assets/fonts/texgyrecursor.otf', 10)
         self.keys = {'up':Key(pygame.K_UP,float('inf'),float('inf')),
                      'down':Key(pygame.K_DOWN,float('inf'),float('inf')),
                      'select':Key(pygame.K_RETURN,float('inf'),float('inf'))}
+        
+        button_settings = {
+            'padding_ns':0, 
+            'padding_ew':10,
+            'bd':color.white, 
+            'bg':color.black,
+            'font_color':color.white,
+            'bd_active':color.white,
+            'bg_active':color.black,
+            'font_color_active':color.red_pale
+        }
         self.button_select = 0
-        self.buttons = [
-            Button(self.display, 
-                   [self.display.get_width()/2,200], 
-                   action=actions['new_game'], 
-                   text='New Game', 
-                   padding_ns=0, 
-                   padding_ew=10,
-                   bd=color.white, 
-                   bg=color.black,
-                   font_color=color.white,
-                   bd_active=color.white,
-                   bg_active=color.black,
-                   font_color_active=color.red),
-            Button(self.display, 
-                   [self.display.get_width()/2,400], 
-                   action=actions['quit'], 
-                   text='Quit', 
-                   padding_ns=0, 
-                   padding_ew=10,
-                   bd=color.white, 
-                   bg=color.black,
-                   font_color=color.white,
-                   bd_active=color.white,
-                   bg_active=color.black,
-                   font_color_active=color.red)
-        ]
+        self.buttons = []
+        for i in range(len(actions)):
+            self.buttons.append(Button(self.display, 
+                                       [self.display.get_width()/2,150 + i * 100],
+                                       text=actions[i][0], 
+                                       action=actions[i][1],
+                                       **button_settings),)
+        
         self.buttons[0].active = True
         
     def update(self):
         if self.keys['up'].keypress():
             self.buttons[self.button_select].active = False
-            self.button_select += 1
-            if self.button_select >= len(self.buttons):
-                self.button_select = 0
-            self.buttons[self.button_select].active = True
-        if self.keys['down'].keypress():
-            self.buttons[self.button_select].active = False
             self.button_select -= 1
             if self.button_select < 0:
                 self.button_select = len(self.buttons)-1
+            self.buttons[self.button_select].active = True
+        if self.keys['down'].keypress():
+            self.buttons[self.button_select].active = False
+            self.button_select += 1
+            if self.button_select >= len(self.buttons):
+                self.button_select = 0
             self.buttons[self.button_select].active = True
         if self.keys['select'].keypress():
             self.buttons[self.button_select].press()
@@ -151,12 +150,13 @@ class Menu:
     def draw(self):
         pygame.draw.rect(self.display, color.white, [110,10,580,580], width=1)
         title = self.font_title.render("Tetris", True, color.white)
-        self.display.blit(title, [(self.display.get_width() - title.get_width()) / 2, 30])
+        self.display.blit(title, [(self.display.get_width() - title.get_width()) / 2, 10])
+        credits = self.font_credits.render("Ghost Flower", True, color.white)
+        self.display.blit(credits, [610, 570])
+        
         for button in self.buttons:
             button.draw()
             
-        
-        
     def event_handle(self, event):
         pass
 
@@ -166,8 +166,19 @@ class Window(pygame_window.main):
         pygame.font.init()
         self.background_colour = color.black
         
-        self.window_i = 0
-        self.windows = [Game.Game(self.display), Menu(self.display, {'new_game':lambda:self.swap_window(), 'quit':lambda:print('quit')})]
+        self.game = Game.Game(self.display, lambda:self.swap_window())
+        
+        def new_game():
+            self.game.start()
+            self.swap_window()
+            
+        self.menu = Menu(self.display, [['Continue', lambda:self.swap_window()],
+                                        ['New Game', lambda:new_game()],
+                                        ['Settings', lambda:print('Settings')],
+                                        ['Quit', lambda:self.quit()]])
+        
+        self.window_i = 1
+        self.windows = [self.game, self.menu]
         
         self.keys = self.windows[self.window_i].keys
         
@@ -175,6 +186,7 @@ class Window(pygame_window.main):
         self.window_i += 1
         if self.window_i >= len(self.windows):
             self.window_i = 0
+        self.keys = self.windows[self.window_i].keys
         
     def update(self):
         super().update()
@@ -187,6 +199,9 @@ class Window(pygame_window.main):
     def event_handle(self, event):
         super().event_handle(event)
         self.windows[self.window_i].event_handle(event)
+    
+    def quit(self):
+        super().quit()
 
 if __name__ == '__main__':
     Window().run()

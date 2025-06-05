@@ -53,6 +53,9 @@ class Shape:
         self.rotate_direction_right()
         
         return can_rotate
+    
+    def get_vectors(self):
+        return self.shapes[self.direction]
             
     def can_advance(self, x:int, y:int) -> bool:
         '''

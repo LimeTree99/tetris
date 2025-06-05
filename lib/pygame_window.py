@@ -33,7 +33,8 @@ class main:
         
         self.clock = pygame.time.Clock()
         
-        
+    def quit(self):
+        self.end = True
 
     def update(self):
         pass
