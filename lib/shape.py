@@ -5,6 +5,9 @@ class Shape:
     def __init__(self):
         self.grid = None
         self.direction = 0
+        
+    def reset(self):
+        self.__init__()
     
     def add_to_grid(self, grid):
         self.grid = grid

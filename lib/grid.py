@@ -111,6 +111,18 @@ class Grid:
         for y in range(self.rows):
             for x in range(self.columns):
                 self.grid[y][x] = None  
+                
+    def add_shape_display(self, shape):
+        pass
+    
+    def remove_shape_display(self, shape):
+        self.set_points(shape.display, None)
+    
+    def add_shape(self, shape):
+        pass
+    
+    def remove_shape(self, shape):
+        self.set_points(shape.shapes[shape.direction], None)
 
     def _print(self):
         for i in self.grid:

@@ -15,6 +15,7 @@ class Game:
             
             self.key_rep = 50
             self.first_key_rep = 200
+            self.can_hold = True
             
             self.keys = {'move_left':Key(pygame.K_LEFT, self.key_rep, self.first_key_rep),
                         'move_right':Key(pygame.K_RIGHT, self.key_rep, self.first_key_rep),
@@ -22,11 +23,13 @@ class Game:
                         'rotate_left':Key(pygame.K_z,float('inf'),float('inf')),
                         'soft_drop':Key(pygame.K_DOWN,self.key_rep, self.key_rep),
                         'hard_drop':Key(pygame.K_SPACE,float('inf'),float('inf')),
+                        'hold':Key(pygame.K_c,float('inf'),float('inf')),
                         'pause':Key(pygame.K_ESCAPE,float('inf'),float('inf'))}
             
             self.grid = Grid(self.display, 20, 10, (280,20), 25, 25)
             self.score = Game.Score(self.display)
-            self.next_block = Game.Next_block(self.display, [575,35], self.rand_shape())
+            self.next_block = Game.Block_display(self.display, [575,35], self.rand_shape(), label='Next')
+            self.hold_block = Game.Block_display(self.display, [80,35], label='Hold')
             
             self.shape = None
             self.start()
@@ -56,6 +59,16 @@ class Game:
             pickle.dump(score_list, fh)
             fh.close()
             
+        def new_shape(self):
+            self.shape = self.next_block.replace(self.rand_shape())
+            self.can_hold = True
+            if self.grid.range_is_free(self.shape.get_vectors()):
+                self.shape.add_to_grid(self.grid)
+            else:
+                self.shape.add_to_grid(self.grid)
+                self.save_score()
+                self.active = False
+            
             
         def tick(self):
             if self.active:
@@ -67,38 +80,41 @@ class Game:
                         self.grid.remove_row(row)
                         self.score.add(100)
                         
-                    self.shape = self.next_block.replace(self.rand_shape())
-                    if self.grid.range_is_free(self.shape.get_vectors()):
-                        self.shape.add_to_grid(self.grid)
-                    else:
-                        self.shape.add_to_grid(self.grid)
-                        self.save_score()
-                        self.active = False
+                    self.new_shape()
                     
         
         def update(self):
-            if self.keys['move_right'].keypress():
-                if self.shape.can_advance(1, 0):
-                    self.shape.advance(1, 0)
-            elif self.keys['move_left'].keypress():
-                if self.shape.can_advance(-1, 0):
-                    self.shape.advance(-1, 0)
-            elif self.keys['rotate_right'].keypress():
-                if self.shape.can_rotate_right():
-                    self.shape.rotate_right()
-            elif self.keys['rotate_left'].keypress():
-                if self.shape.can_rotate_left():
-                    self.shape.rotate_left()
-            elif self.keys['soft_drop'].keypress():
-                self.tick()
-                # fixes a bug but i don't like this solution
-                if self.active:
+            if self.active:
+                if self.keys['move_right'].keypress():
+                    if self.shape.can_advance(1, 0):
+                        self.shape.advance(1, 0)
+                elif self.keys['move_left'].keypress():
+                    if self.shape.can_advance(-1, 0):
+                        self.shape.advance(-1, 0)
+                elif self.keys['rotate_right'].keypress():
+                    if self.shape.can_rotate_right():
+                        self.shape.rotate_right()
+                elif self.keys['rotate_left'].keypress():
+                    if self.shape.can_rotate_left():
+                        self.shape.rotate_left()
+                elif self.keys['soft_drop'].keypress():
+                    self.tick()
                     self.score.add(1)
-            elif self.keys['hard_drop'].keypress():
-                distance = self.shape.hard_drop()
-                self.score.add(distance)
-                self.tick()
-            elif self.keys['pause'].keypress():
+                elif self.keys['hard_drop'].keypress():
+                    distance = self.shape.hard_drop()
+                    self.score.add(distance)
+                    self.tick()
+                elif self.keys['hold'].keypress() and self.can_hold:
+                    self.can_hold = False
+                    self.grid.remove_shape(self.shape)
+                    self.shape.reset()
+                    self.shape = self.hold_block.replace(self.shape)
+                    if self.shape == None:
+                        self.shape = self.rand_shape()
+                    self.shape.add_to_grid(self.grid)
+                    
+                    
+            if self.keys['pause'].keypress():
                 self.exit_func()
                 
             
@@ -107,6 +123,7 @@ class Game:
             self.grid.draw()
             self.score.draw()
             self.next_block.draw()
+            self.hold_block.draw()
         
         def event_handle(self, event):
             if event.type == Game.Game.TICK:
@@ -162,16 +179,22 @@ class Game:
             return self.score
                 
 
-    class Next_block:
-        def __init__(self, display, pos, shape):
+    class Block_display:
+        def __init__(self, display, pos, shape=None, label=''):
             self.display = display
             self.pos = pos
-            self.grid = Grid(self.display, 2, 4, [pos[0]+25, pos[1]+25], 25,25)
             self.shape = shape
-            self.shape.add_to_display(self.grid)
+            self.label = label
+            self.grid = Grid(self.display, 2, 4, [pos[0]+25, pos[1]+25], 25,25)
+            if self.shape != None:
+                self.shape.add_to_display(self.grid)
+                
+            self.font = pygame.font.Font('assets/fonts/texgyrecursor.otf', 23)
+            self.label_surface = self.font.render(self.label, True, color.white, color.black)
             
         def draw(self):
             pygame.draw.rect(self.display, color.white, [self.pos[0],self.pos[1],150,100], width=1)
+            self.display.blit(self.label_surface, [self.pos[0]+45, self.pos[1]-15])
             self.grid.draw()
         
         def replace(self, shape:Shape) -> Shape:

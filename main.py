@@ -14,9 +14,11 @@ todo short term:
     display last score & top score on start menu
     decide how start menu should select on return from other window    
     actually balence the game???
+    change Shape.add_to_display(Grid) to Grid.add_to_display(Shape) it feels more logical
     
 todo long term:
     be able to adjust settings
+    make update and drawing algorithms not redo the whole thing every frame
     resizable to a smaller size (probably wont happen)
 """
         
@@ -167,9 +169,12 @@ class Menu:
         self.display.blit(credits, [610, 570])
         
         #scores
-        top_score = Util.text_vertical(self.font_score, f'TOP {self.score_top}', True, color.white)
+        top_0_buff = max(len(str(self.score_top)), len(str(self.score_last))) - len(str(self.score_top))
+        last_0_buff = max(len(str(self.score_top)), len(str(self.score_last))) - len(str(self.score_last))
+        
+        top_score = Util.text_vertical(self.font_score, f'TOP {'0'*top_0_buff}{self.score_top}', True, color.white)
         self.display.blit(top_score, [130,165])
-        top_score = Util.text_vertical(self.font_score, f'LST {self.score_last}', True, color.white)
+        top_score = Util.text_vertical(self.font_score, f'LST {'0'*last_0_buff}{self.score_last}', True, color.white)
         self.display.blit(top_score, [660,165])
         
         for button in self.buttons:
@@ -193,11 +198,11 @@ class Window(pygame_window.main):
                                         ['Settings', lambda:print('Settings')],
                                         ['Quit', lambda:self.quit()]])
         self.keys = {}
-        self.window_cur = 'menu'
+        self.window_cur = ''
         self.windows = {'game':None, 'menu':None}
         self.new_game()
         self.new_menu()
-        self.go_to('menu')
+        self.go_to('game')
         
         
         
