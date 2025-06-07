@@ -11,11 +11,14 @@ class Game:
             self.display = display
             self.exit_func = exit_func
             self.active = False
-            self.tick_speed = 500
+            self.tick_speed = 1000
+            self.level = 1
+            self.lines = 0
             
             self.key_rep = 50
             self.first_key_rep = 200
             self.can_hold = True
+            self.rand_bag = []
             
             self.keys = {'move_left':Key(pygame.K_LEFT, self.key_rep, self.first_key_rep),
                         'move_right':Key(pygame.K_RIGHT, self.key_rep, self.first_key_rep),
@@ -79,9 +82,20 @@ class Game:
                     for row in self.grid.find_full_rows():
                         self.grid.remove_row(row)
                         self.score.add(100)
+                        self.lines += 1
+                        if self.lines % 10 == 0:
+                            self.next_level()
                         
                     self.new_shape()
                     
+        def next_level(self):
+            
+            if self.level != 20:
+                self.level += 1
+            print(f'level {self.level}')
+            
+            self.tick_speed = ((0.8-((self.level-1)*0.007))**(self.level-1)) * 1000 # taken from tetris wiki 
+            pygame.time.set_timer(Game.Game.TICK, int(self.tick_speed))
         
         def update(self):
             if self.active:
@@ -130,7 +144,10 @@ class Game:
                 self.tick()
             
         def rand_shape(self):
-            x = randint(0, 6)
+            if len(self.rand_bag) == 0:
+                self.rand_bag = [i for i in range(0,7)]
+                            
+            x = self.rand_bag.pop(randint(0, len(self.rand_bag)-1))
             
             if x == 0:
                 shape = Shape_I()
@@ -151,7 +168,7 @@ class Game:
 
 
     class Score:
-        def __init__(self, display):
+        def __init__(self, display, label=''):
             self.display = display
             self.font = pygame.font.Font('assets/fonts/texgyrecursor.otf', 40)
             self.score = 0

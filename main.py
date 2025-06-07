@@ -6,14 +6,16 @@ from lib import color, pygame_window, Key, Game, Util
 
 """
 game design decitions:
-    add score for droping blocks
-        -only if they are droped all the way
-        -1 point for each block droped through
+    score
+        -1 point for each block droped through only if they are droped all the way
+        -100 for each line cleared
+        -combos??
+    leveling
+        -go up a level after 10 lines cleared
         
-todo short term:
-    display last score & top score on start menu
-    decide how start menu should select on return from other window    
-    actually balence the game???
+        
+todo short term: 
+    there may be a bug with saving the score, investigate
     change Shape.add_to_display(Grid) to Grid.add_to_display(Shape) it feels more logical
     
 todo long term:
@@ -202,7 +204,7 @@ class Window(pygame_window.main):
         self.windows = {'game':None, 'menu':None}
         self.new_game()
         self.new_menu()
-        self.go_to('game')
+        self.go_to('menu')
         
         
         
