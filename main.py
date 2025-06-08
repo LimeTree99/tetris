@@ -5,18 +5,24 @@ from lib import color, pygame_window, Key, Game, Util
 
 
 """
-game design decitions:
-    score
-        -1 point for each block droped through only if they are droped all the way
-        -100 for each line cleared
-        -combos??
-    leveling
-        -go up a level after 10 lines cleared
+game design decitions: According to tetris standard
+    score (I am not implimenting T spins at this time)
+        Single 	                100 * level
+        Double 	                300 * level
+        Triple 	                500 * level
+        Tetris 	                800 * level 
+        Back-to-Back tetris 	Tetris score × 1.5 (excluding soft drop and hard drop) 
+        Combo 	                50 * combo count * level
+        Soft drop 	            1 per cell
+        Hard drop 	            2 per cell 
         
         
 todo short term: 
     there may be a bug with saving the score, investigate
     change Shape.add_to_display(Grid) to Grid.add_to_display(Shape) it feels more logical
+    moving left and right feel slugish, adjust key rep speeds 
+    display a popup for double, tripple, etc.
+    save score, level, lines cleared, game duration 
     
 todo long term:
     be able to adjust settings

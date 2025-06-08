@@ -12,8 +12,6 @@ class Game:
             self.exit_func = exit_func
             self.active = False
             self.tick_speed = 1000
-            self.level = 1
-            self.lines = 0
             
             self.key_rep = 50
             self.first_key_rep = 200
@@ -79,22 +77,26 @@ class Game:
                     self.shape.advance(0, 1)
                 else:
                     #hit end create new shape
+                    lines = 0
                     for row in self.grid.find_full_rows():
                         self.grid.remove_row(row)
-                        self.score.add(100)
-                        self.lines += 1
-                        if self.lines % 10 == 0:
+                        lines += 1
+                        
+                    if lines == 0:
+                        self.score.reset_combo()
+                    else:
+                        self.score.lines_cleared += lines
+                        self.score.add_lines(lines)
+                        print(self.score.lines_cleared)
+                        if self.score.next_level():
                             self.next_level()
                         
                     self.new_shape()
                     
         def next_level(self):
+            print(f'level {self.score.level}')
             
-            if self.level != 20:
-                self.level += 1
-            print(f'level {self.level}')
-            
-            self.tick_speed = ((0.8-((self.level-1)*0.007))**(self.level-1)) * 1000 # taken from tetris wiki 
+            self.tick_speed = ((0.8-((self.score.level-1)*0.007))**(self.score.level-1)) * 1000 # taken from tetris wiki 
             pygame.time.set_timer(Game.Game.TICK, int(self.tick_speed))
         
         def update(self):
@@ -113,10 +115,10 @@ class Game:
                         self.shape.rotate_left()
                 elif self.keys['soft_drop'].keypress():
                     self.tick()
-                    self.score.add(1)
+                    self.score.add_score(1)
                 elif self.keys['hard_drop'].keypress():
                     distance = self.shape.hard_drop()
-                    self.score.add(distance)
+                    self.score.add_score(distance * 2)
                     self.tick()
                 elif self.keys['hold'].keypress() and self.can_hold:
                     self.can_hold = False
@@ -168,29 +170,89 @@ class Game:
 
 
     class Score:
-        def __init__(self, display, label=''):
+        def __init__(self, display):
             self.display = display
-            self.font = pygame.font.Font('assets/fonts/texgyrecursor.otf', 40)
+            self.font_numbers = pygame.font.Font('assets/fonts/texgyrecursor.otf', 40)
+            self.font_labels = pygame.font.Font('assets/fonts/texgyrecursor.otf', 23)
             self.score = 0
+            self.level = 1
+            self.level_cap = 20
+            self.lines_cleared = 0
+            self.combo_count = -1
+            self.last_tetris = False
+            self.new_level = True
             self.surface = None
             self.create_surface()
             
         def draw(self):
-            self.display.blit(self.surface, [50,470])
+            self.display.blit(self.surface, [50,300])
             
         def create_surface(self):
-            self.surface = pygame.Surface([200, 50])
-            pygame.draw.rect(self.surface, color.white, self.surface.get_rect(), width=1)
-            font = self.font.render(str(self.score), True, color.white)
-            self.surface.blit(font, [7,-1])
+            score_surface = pygame.Surface([200, 80])
+            pygame.draw.rect(score_surface, color.white, [0,30,200,50], width=1)
+            score_num = self.font_numbers.render(str(self.score), True, color.white)
+            score_surface.blit(score_num, [7,26])
+            score_label = self.font_labels.render('Score', True, color.white)
+            score_surface.blit(score_label, [60,0])
+            
+            level_surface = pygame.Surface([200, 80])
+            pygame.draw.rect(level_surface, color.white, [0,30,200,50], width=1)
+            score_num = self.font_numbers.render(str(self.level), True, color.white)
+            level_surface.blit(score_num, [7,26])
+            score_label = self.font_labels.render('Level', True, color.white)
+            level_surface.blit(score_label, [60,0])
+            
+            lines_surface = pygame.Surface([200, 80])
+            pygame.draw.rect(lines_surface, color.white, [0,30,200,50], width=1)
+            score_num = self.font_numbers.render(str(self.lines_cleared), True, color.white)
+            lines_surface.blit(score_num, [7,26])
+            score_label = self.font_labels.render('Lines', True, color.white)
+            lines_surface.blit(score_label, [60,0])
+            
+            self.surface = pygame.Surface([200, 240])
+            self.surface.blit(score_surface, [0,0])
+            self.surface.blit(level_surface, [0,80])
+            self.surface.blit(lines_surface, [0,160])
         
-        def add(self, amount):
+        def reset_combo(self):
+            self.combo_count = -1
+            self.last_tetris = False
+            self.new_level = False
+            
+        def add_lines(self, lines):
+            if lines >= 1 and lines <= 3:
+                self.score += [100,300,500][lines-1] * self.level
+            if lines == 4:
+                if self.last_tetris:
+                    self.score += 800 * self.level * 1.5
+                else:
+                    self.score += 800 * self.level
+                    self.last_tetris = True
+            
+            self.combo_count += 1
+            self.score += 50 * self.combo_count * self.level
+            
+            old_level = self.level
+            self.level = self.lines_cleared // 10 + 1
+            if self.level > self.level_cap:
+                self.level = self.level_cap
+                
+            if old_level != self.level:
+                self.new_level = True
+                
+            self.create_surface()
+                
+        
+        def add_score(self, amount):
             self.score += amount
             self.create_surface()
         
         def set(self, amount):
             self.score = amount
             self.create_surface()
+            
+        def next_level(self):
+            return self.new_level
             
         def get_score(self):
             return self.score
