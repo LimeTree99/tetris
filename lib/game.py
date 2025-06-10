@@ -13,8 +13,8 @@ class Game:
             self.active = False
             self.tick_speed = 1000
             
-            self.key_rep = 50
-            self.first_key_rep = 200
+            self.key_rep = 40
+            self.first_key_rep = 130
             self.can_hold = True
             self.rand_bag = []
             
@@ -31,6 +31,7 @@ class Game:
             self.score = Game.Score(self.display)
             self.next_block = Game.Block_display(self.display, [575,35], self.rand_shape(), label='Next')
             self.hold_block = Game.Block_display(self.display, [80,35], label='Hold')
+            
             
             self.shape = None
             self.start()
@@ -87,20 +88,18 @@ class Game:
                     else:
                         self.score.lines_cleared += lines
                         self.score.add_lines(lines)
-                        print(self.score.lines_cleared)
                         if self.score.next_level():
                             self.next_level()
                         
                     self.new_shape()
                     
-        def next_level(self):
-            print(f'level {self.score.level}')
-            
+        def next_level(self):            
             self.tick_speed = ((0.8-((self.score.level-1)*0.007))**(self.score.level-1)) * 1000 # taken from tetris wiki 
             pygame.time.set_timer(Game.Game.TICK, int(self.tick_speed))
         
         def update(self):
             if self.active:
+                self.score.update()
                 if self.keys['move_right'].keypress():
                     if self.shape.can_advance(1, 0):
                         self.shape.advance(1, 0)
@@ -133,8 +132,6 @@ class Game:
             if self.keys['pause'].keypress():
                 self.exit_func()
                 
-            
-            
         def draw(self):
             self.grid.draw()
             self.score.draw()
@@ -182,10 +179,17 @@ class Game:
             self.last_tetris = False
             self.new_level = True
             self.surface = None
+            
+            self.popup = Game.Popup(self.display, [560, 450], 1000)
+            
             self.create_surface()
             
         def draw(self):
             self.display.blit(self.surface, [50,300])
+            self.popup.draw()
+            
+        def update(self):
+            self.popup.update()
             
         def create_surface(self):
             score_surface = pygame.Surface([200, 80])
@@ -220,17 +224,29 @@ class Game:
             self.new_level = False
             
         def add_lines(self, lines):
-            if lines >= 1 and lines <= 3:
-                self.score += [100,300,500][lines-1] * self.level
-            if lines == 4:
+            add = 0
+            if lines == 1:
+                add = 100 * self.level
+                self.popup.message(f'Single {add}')
+            elif lines == 2:
+                add = 300 * self.level
+                self.popup.message(f'Double {add}')
+            elif lines == 3:
+                add = 500 * self.level
+                self.popup.message(f'Triple {add}')
+            elif lines == 4:
                 if self.last_tetris:
-                    self.score += 800 * self.level * 1.5
+                    add = int(800 * self.level * 1.5)
+                    self.popup.message(f'Tetris Run {add}')
                 else:
-                    self.score += 800 * self.level
+                    add = 800 * self.level
                     self.last_tetris = True
+                    self.popup.message(f'Tetris {add}')
             
             self.combo_count += 1
-            self.score += 50 * self.combo_count * self.level
+            if self.combo_count > 0:
+                add += 50 * self.combo_count * self.level
+                self.popup.message(f'Combo {add}')
             
             old_level = self.level
             self.level = self.lines_cleared // 10 + 1
@@ -239,6 +255,8 @@ class Game:
                 
             if old_level != self.level:
                 self.new_level = True
+                
+            self.score += add
                 
             self.create_surface()
                 
@@ -256,6 +274,33 @@ class Game:
             
         def get_score(self):
             return self.score
+        
+    class Popup:
+        def __init__(self, display, pos, display_time):
+            self.display = display
+            self.pos = pos
+            self.display_time = display_time
+            self.on_time = 0
+            
+            self.font = pygame.font.Font('assets/fonts/texgyrecursor.otf', 17)
+            self.surface = None
+            self.text = ''
+            self.active = False
+        
+        def message(self, text):
+            self.text = text
+            self.surface = self.font.render(self.text, True, color.white)
+            self.active = True
+            self.on_time = pygame.time.get_ticks()
+            
+        def update(self):
+            if self.active:
+                if self.on_time + self.display_time < pygame.time.get_ticks():
+                    self.active = False
+        
+        def draw(self):
+            if self.active:
+                self.display.blit(self.surface, self.pos)
                 
 
     class Block_display:
